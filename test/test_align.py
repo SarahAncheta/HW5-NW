@@ -3,6 +3,7 @@ import pytest
 from align import NeedlemanWunsch, read_fasta
 import numpy as np
 
+
 def test_nw_alignment():
     """
     TODO: Write your unit test for NW alignment
@@ -14,7 +15,20 @@ def test_nw_alignment():
     """
     seq1, _ = read_fasta("./data/test_seq1.fa")
     seq2, _ = read_fasta("./data/test_seq2.fa")
-    pass
+
+    sub_matrix = "./substitution_matrices/BLOSUM62.mat"
+    
+    nw_align = NeedlemanWunsch(sub_matrix, gap_open=-10, gap_extend=-1)
+    score, align1, align2 = nw_align.align(seq1, seq2)
+
+    print(nw_align.Ix)
+    # print(nw_align.Iy)
+    # print(nw_align.M)
+    print(seq1)
+    print(seq2)
+    print(align1)
+    print(align2)
+
     
 
 def test_nw_backtrace():
