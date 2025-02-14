@@ -129,19 +129,18 @@ class NeedlemanWunsch:
         # TODO: Initialize matrix private attributes for use in alignment
         # create matrices for alignment scores, gaps, and backtracing
         
-        #we create matrices for the Ix, Iy, M and backtracking and save them as attributes of self
+        #we create empty matrices for the Ix, Iy, M and backtracking and after filling them in we store them as attributes of self (at the end)
         j_s = len(seqA) + 1
         i_s= len(seqB) + 1
-        Ix = np.full((i_s, j_s), -np.inf)
+        Ix = np.full((i_s, j_s), -np.inf) #the three matrices correspond to the three possible moves
         Iy = np.full((i_s, j_s), -np.inf)
         M = np.full((i_s, j_s), -np.inf)
 
-        h = self.gap_open
+        h = self.gap_open 
         g = self.gap_extend
 
-        #fix this backmatrix. perhaps I store these with values either 1, 2 or 3? figure out how to initialize.
-        #backmatrix = np.empty((i_s, j_s), dtype=object) #this will be filled with tuples (M, Ix pointer, Iy pointer).
-        #They are indexed as follows - points to M are 0, Ix are 1, Iy are 2
+       
+        #points to M are stored as 0, Ix are 1, Iy are 2. when it has no pointer, it is stored as a -1
         backmatrix = np.full((i_s, j_s), -1)
 
 
@@ -152,32 +151,29 @@ class NeedlemanWunsch:
             Ix[i][0]= -np.inf # first column of Ix is negative inf
             if i == 0:  # Set 0,0 item of M to 0, otherwise column value is negative inf
                 M[i][0] = 0
-                #backmatrix[i][0] = (-1, -1, -1)
+                
             else:
                 M[i][0] = -np.inf
-                #backmatrix[i][0] = (-1, -1, 2)
-                backmatrix[i][0] = 2
+                backmatrix[i][0] = 2 #points back to the Iy value
 
         for j in range(j_s): # initialize first row for the three matrices
             Ix[0][j] = h + g*j # first row value of Ix based on intitial starting condition
             Iy[0][j] = -np.inf # otherwise for Iy is negative inf
             if j == 0:        #same for M (neg inf), except for the 0,0 item which is 0
                 M[0][j] = 0
-                #backmatrix[0][j] = (-1, -1, -1)
+                
             else:
                 M[0][j] = -np.inf
-                #backmatrix[0][j] = (-1, 1, -1)
-                backmatrix[0][j] = 1
+                backmatrix[0][j] = 1 #points back to Ix value
 
         # TODO: Implement global alignment here    
 
-        # TODO: store where it came from, which one gave me np.max
 
         for i, j in np.ndindex(i_s, j_s): #we only iterate through the inside, ignore edges
             if i == 0 or j == 0:
                 continue
 
-            s_value = self.sub_dict[(seqB[i-1], seqA[j-1])]
+            s_value = self.sub_dict[(seqB[i-1], seqA[j-1])] #in the following lines, we calculate the values of M, Ix and Iy
 
             m_vals = np.array([
                 M[i-1][j-1] + s_value,
@@ -186,7 +182,6 @@ class NeedlemanWunsch:
             ])
 
             M[i][j]= np.max(m_vals)
-            m_index = np.argmax(m_vals)
 
             x_vals = np.array([
                 M[i-1][j] + h + g,
@@ -195,7 +190,6 @@ class NeedlemanWunsch:
             ])
 
             Ix[i][j] = np.max(x_vals)
-            x_index = np.argmax(x_vals)
 
             y_vals = np.array([
                 M[i][j-1] + h + g,
@@ -204,13 +198,11 @@ class NeedlemanWunsch:
             ])
 
             Iy[i][j] = np.max(y_vals)
-            y_index = np.argmax(y_vals)
 
-
-            #backmatrix[i][j] = (m_index, x_index, y_index)
-
+            #our pointer stores the "point" back to the largest score
             pointer = np.argmax([M[i][j], Ix[i][j], Iy[i][j]])
-
+            
+            #we say which matrix it came from (0 indicates M, 1 indices Ix, 2 indicates Iy)
             if pointer == 0:
                 backmatrix[i][j] = 0
             elif pointer == 1:
@@ -219,6 +211,8 @@ class NeedlemanWunsch:
                 backmatrix[i][j] = 2
             else:
                 print('trap')
+
+        #we store all these matrices we calculated as attributes
 
         self.Ix = Ix
         self.Iy = Iy
@@ -242,19 +236,16 @@ class NeedlemanWunsch:
          		the score and corresponding strings for the alignment of seqA and seqB
         """
         max_row, max_col = self.M.shape
-        max_row -= 1
+        max_row -= 1 # we subtract 1 because we have 0 indexing (starts with 0)
         max_col -= 1
 
         seqA = self._seqA
         seqB = self._seqB
 
         final_scores = np.array([self.M[max_row][max_col], self.Ix[max_row][max_col], self.Iy[max_row][max_col]])
-        self.alignment_score = np.max(final_scores)
+        self.alignment_score = np.max(final_scores) #get the highest score across all three matrices, for the last/corner value
 
-        starter_index = np.argmax(final_scores)
-
-        index = starter_index
-        row_val = max_row
+        row_val = max_row # we iterate backwards through the rows and columns
         col_val = max_col
 
         seqA_align = ''
@@ -262,9 +253,9 @@ class NeedlemanWunsch:
 
         while row_val >= 0 or col_val >= 0: #checking if we hit the top right corner
 
-            my_backtrack_index = self.backmatrix[row_val][col_val]
+            my_backtrack_index = self.backmatrix[row_val][col_val] #we get the pointer from the backmatrix for that particular square
 
-            if my_backtrack_index == 0: #this is an M movement, we take the 
+            if my_backtrack_index == 0: #this is an M movement, take the diagonal
 
                 seqA_align = seqA[col_val - 1] + seqA_align
                 seqB_align = seqB[row_val - 1 ] + seqB_align
@@ -272,21 +263,21 @@ class NeedlemanWunsch:
                 row_val -= 1
                 col_val -= 1
 
-            if my_backtrack_index == 1: #this is an Ix movement
+            if my_backtrack_index == 1: #this is an Ix movement, make a space in seqA and traverse up a row
 
                 seqA_align = '-' + seqA_align
                 seqB_align = seqB[row_val - 1] + seqB_align
                 row_val -= 1
 
 
-            if my_backtrack_index == 2: #this is an Iy movement
+            if my_backtrack_index == 2: #this is an Iy movement, make a space in seqB and traverse left a column
 
                 seqA_align = seqA[col_val - 1] + seqA_align
                 seqB_align = '-' + seqB_align
                 col_val -= 1
 
-            if my_backtrack_index == -1:
-                if col_val == 0 and row_val == 0:
+            if my_backtrack_index == -1: #if we get a -1 value, that means we have hit the edge
+                if col_val == 0 and row_val == 0: # until we hit the top left corner, add spaces as needed
                     break
 
                 if row_val == 0:
@@ -299,20 +290,9 @@ class NeedlemanWunsch:
                     seqB_align = seqB[row_val - 1] + seqB_align
                     row_val -= 1
 
-
-            # if my_backtrack_index == -1:
-            #     break
-            
-            # if row_val >= 0 and col_val >= 0:
-            #     index = self.backmatrix[row_val][col_val][index]
-            # else:
-            #     break
             
         self.seqA_align = seqA_align
         self.seqB_align = seqB_align
-
-        #iterate backward through the matrix, following the arrows TODO figure this part out.
-           
 
         return (self.alignment_score, self.seqA_align, self.seqB_align)
 

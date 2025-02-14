@@ -21,14 +21,19 @@ def main():
     
     nw_align = NeedlemanWunsch(sub_matrix, gap_open=-10, gap_extend=-1)
 
+    #we calculate the alignment score for each of the species, including human
+
     hs_score, _, _ = nw_align.align(hs_seq, hs_seq)
     g_score, _, _ = nw_align.align(hs_seq, gg_seq)
     m_score, _, _ = nw_align.align(hs_seq, mm_seq)
     br_score, _, _ = nw_align.align(br_seq, gg_seq)
     tt_score, _, _ = nw_align.align(tt_seq, hs_seq)
 
+    #make a dictionary of the scores and their species
+
     myscores = {'Homo_sapiens': hs_score, 'Gallus_gallus': g_score, 'Mus_musculus': m_score, 'Balaeniceps_rex': br_score, 'tursiops_truncatus': tt_score}
 
+    #we print in order (greatest to least) the scores and the species
     species_list = []
     scores_list = []
     for w in sorted(myscores, key=myscores.get, reverse=True):

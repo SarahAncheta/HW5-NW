@@ -21,8 +21,11 @@ def test_nw_alignment():
     nw_align = NeedlemanWunsch(sub_matrix, gap_open=-10, gap_extend=-1)
     score, _, _ = nw_align.align(seq1, seq2)
 
-    assert score == 4
-    test_M_array = np.array([[0.0, -np.inf, -np.inf, -np.inf, -np.inf], 
+    assert score == 4 #we check that we got the correct score for this alignment
+
+     #we check that we got the same calculations for the matrices for this example
+
+    test_M_array = np.array([[0.0, -np.inf, -np.inf, -np.inf, -np.inf],
                                    [-np.inf,   5, -12, -12, -14], 
                                    [-np.inf, -11,   4, -1, -6], 
                                    [-np.inf, -13, -8,   5,  4]])
@@ -60,6 +63,7 @@ def test_nw_backtrace():
     nw_align = NeedlemanWunsch(sub_matrix, gap_open=-10, gap_extend=-1)
     score, align3, align4 = nw_align.align(seq3, seq4)
 
+    #check that we got the correct alignment for the sequences, and the correct score
     assert align3 == 'MAVHQLIRRP'
     assert align4 == 'M---QLIRHP'
     assert score == 17
