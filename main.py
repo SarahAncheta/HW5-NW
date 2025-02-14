@@ -26,7 +26,7 @@ def main():
     hs_score, _, _ = nw_align.align(hs_seq, hs_seq)
     g_score, _, _ = nw_align.align(hs_seq, gg_seq)
     m_score, _, _ = nw_align.align(hs_seq, mm_seq)
-    br_score, _, _ = nw_align.align(br_seq, gg_seq)
+    br_score, _, _ = nw_align.align(br_seq, hs_seq)
     tt_score, _, _ = nw_align.align(tt_seq, hs_seq)
 
     #make a dictionary of the scores and their species
