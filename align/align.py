@@ -140,8 +140,10 @@ class NeedlemanWunsch:
         g = self.gap_extend
 
         #fix this backmatrix. perhaps I store these with values either 1, 2 or 3? figure out how to initialize.
-        backmatrix = np.empty((i_s, j_s), dtype=object) #this will be filled with tuples (M, Ix pointer, Iy pointer).
+        #backmatrix = np.empty((i_s, j_s), dtype=object) #this will be filled with tuples (M, Ix pointer, Iy pointer).
         #They are indexed as follows - points to M are 0, Ix are 1, Iy are 2
+        backmatrix = np.full((i_s, j_s), -1)
+
 
         #we initialize the first row and column for each of the matrices
 
@@ -150,20 +152,22 @@ class NeedlemanWunsch:
             Ix[i][0]= -np.inf # first column of Ix is negative inf
             if i == 0:  # Set 0,0 item of M to 0, otherwise column value is negative inf
                 M[i][0] = 0
-                backmatrix[i][0] = (-1, -1, -1)
+                #backmatrix[i][0] = (-1, -1, -1)
             else:
                 M[i][0] = -np.inf
-                backmatrix[i][0] = (-1, -1, 2)
+                #backmatrix[i][0] = (-1, -1, 2)
+                backmatrix[i][0] = 2
 
         for j in range(j_s): # initialize first row for the three matrices
             Ix[0][j] = h + g*j # first row value of Ix based on intitial starting condition
             Iy[0][j] = -np.inf # otherwise for Iy is negative inf
             if j == 0:        #same for M (neg inf), except for the 0,0 item which is 0
                 M[0][j] = 0
-                backmatrix[0][j] = (-1, -1, -1)
+                #backmatrix[0][j] = (-1, -1, -1)
             else:
                 M[0][j] = -np.inf
-                backmatrix[0][j] = (-1, 1, -1)
+                #backmatrix[0][j] = (-1, 1, -1)
+                backmatrix[0][j] = 1
 
         # TODO: Implement global alignment here    
 
@@ -202,9 +206,19 @@ class NeedlemanWunsch:
             Iy[i][j] = np.max(y_vals)
             y_index = np.argmax(y_vals)
 
-            #store the arrow as a tuple
 
-            backmatrix[i,j] = (m_index, x_index, y_index)
+            #backmatrix[i][j] = (m_index, x_index, y_index)
+
+            pointer = np.argmax([M[i][j], Ix[i][j], Iy[i][j]])
+
+            if pointer == 0:
+                backmatrix[i][j] = 0
+            elif pointer == 1:
+                backmatrix[i][j] = 1
+            elif pointer == 2:
+                backmatrix[i][j] = 2
+            else:
+                print('trap')
 
         self.Ix = Ix
         self.Iy = Iy
@@ -246,9 +260,9 @@ class NeedlemanWunsch:
         seqA_align = ''
         seqB_align = ''
 
-        while row_val > 0 or col_val > 0: #checking if we hit the top right corner
+        while row_val >= 0 or col_val >= 0: #checking if we hit the top right corner
 
-            my_backtrack_index = self.backmatrix[row_val][col_val][index]
+            my_backtrack_index = self.backmatrix[row_val][col_val]
 
             if my_backtrack_index == 0: #this is an M movement, we take the 
 
@@ -262,22 +276,37 @@ class NeedlemanWunsch:
 
                 seqA_align = '-' + seqA_align
                 seqB_align = seqB[row_val - 1] + seqB_align
-                col_val -= 1
+                row_val -= 1
 
 
             if my_backtrack_index == 2: #this is an Iy movement
 
                 seqA_align = seqA[col_val - 1] + seqA_align
                 seqB_align = '-' + seqB_align
-                row_val -= 1
+                col_val -= 1
 
             if my_backtrack_index == -1:
-                break
+                if col_val == 0 and row_val == 0:
+                    break
+
+                if row_val == 0:
+                    seqA_align = seqA[col_val - 1] + seqA_align
+                    seqB_align = '-' + seqB_align
+                    col_val -= 1
+
+                if col_val == 0:
+                    seqA_align = '-' + seqA_align
+                    seqB_align = seqB[row_val - 1] + seqB_align
+                    row_val -= 1
+
+
+            # if my_backtrack_index == -1:
+            #     break
             
-            if row_val >= 0 and col_val >= 0:
-                index = self.backmatrix[row_val][col_val][index]
-            else:
-                break
+            # if row_val >= 0 and col_val >= 0:
+            #     index = self.backmatrix[row_val][col_val][index]
+            # else:
+            #     break
             
         self.seqA_align = seqA_align
         self.seqB_align = seqB_align

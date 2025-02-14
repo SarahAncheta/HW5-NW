@@ -15,12 +15,29 @@ def main():
 
     # TODO Align all species to humans and print species in order of most similar to human BRD
     # using gap opening penalty of -10 and a gap extension penalty of -1 and BLOSUM62 matrix
-    pass
+    # pass
 
-    # TODO print all of the alignment score between each species BRD2 and human BRD2
-    # using gap opening penalty of -10 and a gap extension penalty of -1 and BLOSUM62 matrix
-    pass
+    sub_matrix = "./substitution_matrices/BLOSUM62.mat"
     
+    nw_align = NeedlemanWunsch(sub_matrix, gap_open=-10, gap_extend=-1)
+
+    hs_score, _, _ = nw_align.align(hs_seq, hs_seq)
+    g_score, _, _ = nw_align.align(hs_seq, gg_seq)
+    m_score, _, _ = nw_align.align(hs_seq, mm_seq)
+    br_score, _, _ = nw_align.align(br_seq, gg_seq)
+    tt_score, _, _ = nw_align.align(tt_seq, hs_seq)
+
+    myscores = {'Homo_sapiens': hs_score, 'Gallus_gallus': g_score, 'Mus_musculus': m_score, 'Balaeniceps_rex': br_score, 'tursiops_truncatus': tt_score}
+
+    species_list = []
+    scores_list = []
+    for w in sorted(myscores, key=myscores.get, reverse=True):
+        species_list.append(w)
+        scores_list.append(myscores[w])
+
+    
+    print(f"species order: {species_list}")
+    print(f"scores of the species order: {scores_list}")
 
 if __name__ == "__main__":
     main()
