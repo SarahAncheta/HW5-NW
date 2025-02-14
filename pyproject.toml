@@ -10,7 +10,7 @@ pythonpath = [
 ]
 
 [project]
-name = "mst"
+name = "align"
 requires-python = ">3.7"
 authors = [{name = "Sarah Ancheta", email = "sarah.ancheta@ucsf.edu"}]
 readme = "README.md"
